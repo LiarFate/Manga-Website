@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manga</title>
+  <style>
+    /* Global Styles */
+    :root {
+      --header-background: rgba(26, 26, 26, 0.8);
+      --header-text-color: #ffffff;
+      --overlay-background: rgba(0, 0, 0, 0.5);
+      --overlay-text-color: rgb(255, 110, 180); /* White-pink color */
+      --box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
+      --border-radius: 15px;
+      --text-color: #ffffff;
+      --border-color: #ff69b4;
+      --background-image: url('https://imgur.com/RE6PyB9.jpg');
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--background-image);
+      background-size: cover;
+      background-position: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Arial', sans-serif;
+      overflow: hidden; /* Hide scrollbar for the entire page */
+      background-color: #000; /* Ensure background is black */
+    }
+
+    /* Preloader Styles */
+    #preloader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent background */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999; /* Ensure it is on top of everything */
+    }
+
+    .loader {
+      border: 8px solid #f3f3f3; /* Light grey */
+      border-top: 8px solid var(--overlay-text-color); /* Use overlay text color */
+      border-radius: 50%;
+      width: 80px; /* Increased size */
+      height: 80px; /* Increased size */
+      animation: spin 1s linear infinite; /* Spin animation */
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Main Styles */
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Center horizontally */
+      justify-content: center; /* Center vertically */
+      width: 100%; /* Ensure it takes full width */
+      background-color: rgba(0, 0, 0, 0.7); /* Add a semi-transparent background */
+      border-radius: 10px; /* Rounded corners */
+      padding: 20px; /* Padding for main */
+      display: none; /* Hide main content initially */
+    }
+
+    /* Header Styles */
+    header {
+      background: var(--header-background);
+      padding: 20px;
+      text-align: center;
+      box-shadow: var(--box-shadow);
+      border-radius: var(--border-radius);
+      margin-bottom: 20px;
+      width: 100%;
+    }
+
+    header h1 {
+      font-size: 48px; /* Increased font size */
+      margin: 0;
+      color: var(--header-text-color);
+      font-weight: bold;
+      text-shadow: 0 0 10px var(--overlay-text-color), 0 0 20px var(--overlay-text-color);
+    }
+
+    header select {
+      margin-top: 10px;
+      padding: 10px;
+      font-size: 16px;
+      border: 2px solid var(--border-color);
+      border-radius: var(--border-radius);
+      background-color: rgba(255, 255, 255, 0.1);
+      color: var(--header-text-color);
+      box-shadow: var(--box-shadow);
+      transition: background-color 0.3s, border-color 0.3s;
+      appearance: none;
+      cursor: pointer;
+    }
+
+    header select:hover,
+    header select:focus {
+      background-color: rgba(255, 255, 255, 0.2);
+      border-color: var(--border-color);
+      outline: none;
+    }
+
+    header select option {
+      background-color: #000;
+      color: var(--header-text-color);
+    }
+
+    /* Image Link Styles */
+    .image-link {
+      display: inline-block;
+      margin: 10px; /* Adjust margin for spacing */
+      position: relative;
+      transition: transform 0.3s;
+      overflow: hidden;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      width: 100%;
+      max-width: 300px;
+      background-color: #000; /* Ensure background is black */
+    }
+
+    .image-link figure {
+      margin: 0;
+      display: block;
+      background-color: transparent;
+    }
+
+    .image-link img {
+      height: 150px; /* Adjusted height */
+      width: 100%; /* Ensure images take full width */
+      border-radius: var(--border-radius);
+      transition: transform 0.3s;
+      object-fit: cover; /* Maintain aspect ratio */
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--overlay-background);
+      border-radius: var(--border-radius);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .image-link:hover {
+      transform: scale(1.05);
+    }
+
+    .image-link:hover img {
+      transform: scale(1.1);
+    }
+
+    .image-link:hover .overlay {
+      opacity: 1;
+    }
+
+    /* Overlay Title Styles */
+    .overlay-title {
+      position: absolute;
+      bottom: 10px; /* Position it at the bottom of the overlay */
+      left: 50%; /* Center it horizontally */
+      transform: translateX(-50%); /* Adjust for centering */
+      color: rgb(255, 190, 222); /* White-pink color */
+      font-size: 16px; /* Increased font size for better visibility */
+      text-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Optional: add a shadow for better visibility */
+      opacity: 0; /* Start hidden */
+      transition: opacity 0.3s, transform 0.3s; /* Smooth transition for visibility and scaling */
+      padding: 10px 15px; /* Increased padding for better appearance */
+      background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black background */
+      border-radius: 5px; /* Rounded corners for the background */
+      white-space: nowrap; /* Prevent text from wrapping */
+      max-width: 90%; /* Limit the width to prevent overflow */
+      text-align: center; /* Center the text */
+    }
+
+    .image-link:hover .overlay-title {
+      opacity: 1; /* Show title on hover */
+      transform: translateX(-50%) scale(1.05); /* Slightly scale up on hover */
+    }
+
+    /* Image Grid Styles */
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr); /* Set to 3 columns */
+      gap: 15px; /* Space between items */
+      padding: 20px; /* Padding for the grid */
+      overflow-y: auto; /* Allow vertical scrolling if needed */
+      max-height: 860px; /* Maximum height */
+      width: 100%; /* Full width */
+      box-sizing: border-box; /* Include padding in width */
+      margin: 0 auto; /* Center the grid */
+    }
+
+    /* Hide scrollbar for the image grid */
+    .image-grid::-webkit-scrollbar {
+      display: none; /* Hide scrollbar for WebKit browsers */
+    }
+
+    .image-grid {
+      scrollbar-width: none; /* Hide scrollbar for Firefox */
+    }
+
+    .image-grid img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: var(--border-radius);
+      display: block;
+    }
+
+    /* Media Queries for Responsive Design */
+    @media (max-width: 768px) {
+      header h1 {
+        font-size: 36px;
+      }
+
+      header select {
+        font-size: 14px;
+      }
+
+      .image-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 columns for medium screens */
+      }
+
+      .image-link img {
+        height: 120px; /* Adjusted height for smaller screens */
+      }
+    }
+
+    @media (max-width: 480px) {
+      header h1 {
+        font-size: 28px;
+      }
+
+      .image-grid {
+        grid-template-columns: 1fr; /* 1 column for small screens */
+      }
+
+      .image-link img {
+        height: 100px; /* Adjusted height for smaller screens */
+      }
+    }
+
+    html {
+      scroll-behavior: smooth; /* Smooth scrolling */
+    }
+
+    /* New styles for the input container */
+    .input-container {
+      position: absolute;
+      top: 197px; /* Adjust this value to move it lower */
+      right: 1400px;
+      display: flex; /* Use flexbox to align items */
+      align-items: flex-start; /* Center vertically */
+    }
+
+    /* New styles for the text area container */
+    .text-area-container {
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    /* New styles for the text area */
+    .text-area {
+      width: 40px; /* Set width of the text area */
+      height: 20px; /* Set height of the text area */
+      background-color: rgba(255, 255, 255, 0.1); /* Match background with theme */
+      color: #ffffff; /* Text color */
+      padding: 1px; /* Adjust padding */
+      border-radius: 26px;
+      box-shadow: var(--box-shadow);
+      z-index: 1000; /* Ensure it is above other elements */
+      font-size: 17px; /* Font size */
+      font-family: 'Arial', sans-serif;
+      border: 1px solid var(--border-color); /* Add border color */
+      resize: none; /* Disable resizing */
+      text-align: center; /* Center the text horizontally */
+      margin-right: 5px; /* Space between text area and label */
+      overflow: hidden; /* Remove scrollbar */
+    }
+
+    /* New styles for the label */
+    .text-label {
+      color: var(--header-text-color); /* Match text color with theme */
+      font-size: 16px; /* Font size */
+      font-family: 'Arial', sans-serif; /* Font family */
+      margin-left: -1px; /* Adjust this value to move the label to the left */;
+      margin-top: 3px; /* Adjust this value to move the label up */
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Preloader -->
+  <div id="preloader">
+    <div class="loader"></div>
+  </div>
+
+  <!-- Input Container for Text Area and Label -->
+  <div class="input-container">
+    <div class="text-area-container">
+      <textarea class="text-area" placeholder=""></textarea>
+    </div>
+    <div class="text-label">DAYS</div> <!-- Label next to the text area -->
+  </div>
+
+  <main>
+    <header>
+      <h1><span style="color: var(--overlay-text-color);">M</span>anga</h1>
+      <select id="language-select">
+        <option value="chinese">Chinese</option>
+        <option value="korean">Korean</option>
+        <option value="japanese">Japanese</option>
+        <option value="yuri">Yuri</option>
+        <option value="healing">Healing</option>
+        <option value="ended">Ended</option>
+      </select>
+    </header>
+    <div class="image-grid">
+      <ul id="manga-list">
+        <!-- Manga Sessions will be generated here -->
+      </ul>
+    </div>
+  </main>
+
+  <script src="mangaDataChinese.js"></script>
+  <script src="mangaDataKorean.js"></script>
+  <script src="mangaDataJapanese.js"></script>
+  <script src="mangaDataYuri.js"></script>
+  <script src="mangaDataHealing.js"></script>
+  <script src="mangaDataEnded.js"></script>
+  <script>
+    const listElement = document.getElementById('manga-list');
+    const languageSelect = document.getElementById('language-select');
+  
+    function generateMangaSessionHTML(session) {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = session.href;
+      a.className = 'image-link';
+      a.setAttribute('aria-label', session.title);
+      a.title = session.title;
+
+      const figure = document.createElement('figure');
+      const img = document.createElement('img');
+      img.src = session.image;
+      img.alt = session.title;
+
+      const overlay = document.createElement('div');
+      overlay.className = 'overlay';
+
+      // Create a title element for the overlay
+      const title = document.createElement('div');
+      title.className = 'overlay-title';
+      title.textContent = session.title; // Set the title text
+
+      overlay.appendChild(title); // Add title to overlay
+      figure.appendChild(img);
+      figure.appendChild(overlay);
+      a.appendChild(figure);
+      li.appendChild(a);
+      return li;
+    }
+  
+    function updateMangaList() {
+      console.log("Updating manga list..."); // Debugging line
+      const selectedLanguage = languageSelect.value;
+      let mangaList = [];
+  
+      // Show preloader and hide main content
+      document.getElementById('preloader').style.display = 'flex'; // Show preloader
+      document.querySelector('main').style.display = 'none'; // Hide main content
+      document.querySelector('.input-container').style.display = 'none'; // Hide input container
+  
+      // Determine which manga list to use based on the selected language
+      if (selectedLanguage === 'chinese') {
+        mangaList = mangaListChinese;
+      } else if (selectedLanguage === 'korean') {
+        mangaList = mangaListKorean;
+      } else if (selectedLanguage === 'japanese') {
+        mangaList = mangaListJapanese;
+      } else if (selectedLanguage === 'yuri') {
+        mangaList = mangaListYuri;
+      } else if (selectedLanguage === 'healing') {
+        mangaList = mangaListHealing;
+      } else if (selectedLanguage === 'ended') {
+        mangaList = mangaListEnded;
+      }
+  
+      // Clear the current list
+      listElement.innerHTML = '';
+  
+      // Simulate loading time (you can adjust this as needed)
+      setTimeout(() => {
+        mangaList.forEach((session) => {
+          const li = generateMangaSessionHTML(session);
+          listElement.appendChild(li);
+        });
+  
+        document.getElementById('preloader').style.display = 'none'; // Hide preloader
+        document.querySelector('main').style.display = 'flex'; // Show main content
+        document.querySelector('.input-container').style.display = 'flex'; // Show input container
+      }, 1000);
+    }
+  
+    languageSelect.addEventListener('change', updateMangaList);
+    updateMangaList();
+  
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('preloader').style.display = 'none'; // Hide preloader
+        document.querySelector('main').style.display = 'flex'; // Show main content
+        document.querySelector('.input-container').style.display = 'flex'; // Show input container
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
